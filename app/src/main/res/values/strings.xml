@@ -36,6 +36,7 @@
     <string name="enter_phone_first">Укажите номер телефона</string>
     <string name="contact_pick_failed">Не удалось получить номер контакта</string>
     <string name="contact_picker_unavailable">Не удалось открыть выбор контактов</string>
+    <string name="contacts_empty">В телефонной книге нет контактов с номерами</string>
     <string name="call_permission_required">Разрешите звонки в настройках приложения</string>
     <string name="permissions_required">Для мгновенного звонка нужно разрешение на совершение вызовов</string>
 </resources>

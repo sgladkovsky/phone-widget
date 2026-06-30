@@ -1,13 +1,11 @@
 package com.flymeauto.phonewidget
 
 import android.Manifest
-import android.app.Activity
 import android.appwidget.AppWidgetManager
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Bundle
-import android.provider.ContactsContract
 import android.util.Log
 import android.view.View
 import android.widget.AdapterView
@@ -37,17 +35,6 @@ class WidgetConfigActivity : AppCompatActivity() {
         if (!granted) {
             Toast.makeText(this, R.string.call_permission_required, Toast.LENGTH_LONG).show()
         }
-    }
-
-    private val pickContact = registerForActivityResult(
-        ActivityResultContracts.StartActivityForResult()
-    ) { result ->
-        val data = result.data ?: return@registerForActivityResult
-        if (result.resultCode != Activity.RESULT_OK && !hasContactResult(data)) {
-            return@registerForActivityResult
-        }
-        ContactPickerHelper.logPickerResult(result.resultCode, data)
-        parseContactResult(data)
     }
 
     private val pickCustomIcon = registerForActivityResult(
@@ -185,26 +172,17 @@ class WidgetConfigActivity : AppCompatActivity() {
         } ?: Log.w(TAG, "setupListeners: phone input is null")
 
         binding.pickCustomIconButton.setOnClickListener {
-            Log.d(TAG, "pickCustomIconButton clicked")
             pickCustomIcon.launch(arrayOf("image/*"))
         }
 
-        binding.saveButton.setOnClickListener {
-            Log.d(TAG, "saveButton clicked")
-            saveWidget()
-        }
-
-        binding.cancelButton.setOnClickListener {
-            Log.d(TAG, "cancelButton clicked")
-            finish()
-        }
-
+        binding.saveButton.setOnClickListener { saveWidget() }
+        binding.cancelButton.setOnClickListener { finish() }
         binding.pickContactButton.setOnClickListener(::onPickContactClicked)
 
         Log.d(TAG, "setupListeners: done")
     }
 
-    private fun onPickContactClicked(view: View) {
+    private fun onPickContactClicked(@Suppress("UNUSED_PARAMETER") view: View) {
         Log.d(TAG, "onPickContactClicked")
         openContactPicker()
     }
@@ -219,56 +197,17 @@ class WidgetConfigActivity : AppCompatActivity() {
     }
 
     private fun openContactPicker() {
-        Log.d(TAG, "openContactPicker: start")
-        try {
-            val intent = createContactPickerIntent()
-            Log.d(TAG, "openContactPicker: intent=$intent")
-            pickContact.launch(intent)
-            Log.d(TAG, "openContactPicker: launched")
-        } catch (e: Exception) {
-            Log.e(TAG, "openContactPicker: failed", e)
-            Toast.makeText(this, R.string.contact_picker_unavailable, Toast.LENGTH_LONG).show()
-        }
+        Log.d(TAG, "openContactPicker: showing in-app contact list")
+        ContactPickerDialog(this) { contact ->
+            applySelectedContact(contact)
+        }.show()
     }
 
-    private fun createContactPickerIntent(): Intent {
-        val candidates = listOf(
-            Intent(Intent.ACTION_PICK, ContactsContract.CommonDataKinds.Phone.CONTENT_URI),
-            Intent(Intent.ACTION_PICK, ContactsContract.Contacts.CONTENT_URI),
-            Intent(Intent.ACTION_PICK).apply {
-                type = ContactsContract.CommonDataKinds.Phone.CONTENT_TYPE
-            },
-            Intent(Intent.ACTION_PICK).apply {
-                type = ContactsContract.Contacts.CONTENT_TYPE
-            }
-        )
-        val resolved = candidates.firstOrNull { intent ->
-            intent.resolveActivity(packageManager) != null
-        } ?: candidates[1]
-        return resolved.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-    }
-
-    private fun hasContactResult(data: Intent): Boolean {
-        if (data.data != null) {
-            return true
-        }
-        if (data.clipData != null && data.clipData!!.itemCount > 0) {
-            return true
-        }
-        return ContactPickerHelper.hasContactData(data)
-    }
-
-    private fun parseContactResult(data: Intent) {
-        val contact = ContactPickerHelper.parseContactFromIntent(this, data)
-        ContactPickerHelper.logPickedContact(contact)
-        if (contact == null) {
-            Toast.makeText(this, R.string.contact_pick_failed, Toast.LENGTH_SHORT).show()
-            return
-        }
-
+    private fun applySelectedContact(contact: PickedContact) {
         binding.phoneInput.setText(contact.phoneNumber)
         binding.contactNameInput.setText(contact.name)
         binding.phoneInputLayout.error = null
+        Log.d(TAG, "applySelectedContact: phone=${contact.phoneNumber}, name=${contact.name}")
     }
 
     private fun saveWidget() {
