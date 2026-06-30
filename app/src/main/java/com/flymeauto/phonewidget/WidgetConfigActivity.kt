@@ -37,10 +37,10 @@ class WidgetConfigActivity : AppCompatActivity() {
     private val pickContact = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
     ) { result ->
-        if (result.resultCode != Activity.RESULT_OK) {
+        val data = result.data ?: return@registerForActivityResult
+        if (result.resultCode != Activity.RESULT_OK && !hasContactResult(data)) {
             return@registerForActivityResult
         }
-        val data = result.data ?: return@registerForActivityResult
         parseContactResult(data)
     }
 
@@ -193,28 +193,34 @@ class WidgetConfigActivity : AppCompatActivity() {
     }
 
     private fun openContactPicker() {
-        val intent = Intent(
-            Intent.ACTION_PICK,
-            ContactsContract.CommonDataKinds.Phone.CONTENT_URI
-        )
-        if (intent.resolveActivity(packageManager) == null) {
-            val fallback = Intent(Intent.ACTION_PICK).apply {
+        val intents = listOf(
+            Intent(Intent.ACTION_PICK, ContactsContract.CommonDataKinds.Phone.CONTENT_URI),
+            Intent(Intent.ACTION_PICK, ContactsContract.Contacts.CONTENT_URI),
+            Intent(Intent.ACTION_PICK).apply {
+                type = ContactsContract.CommonDataKinds.Phone.CONTENT_TYPE
+            },
+            Intent(Intent.ACTION_PICK).apply {
                 type = ContactsContract.Contacts.CONTENT_TYPE
             }
-            pickContact.launch(fallback)
-            return
-        }
+        )
+        val intent = intents.firstOrNull { it.resolveActivity(packageManager) != null }
+            ?: intents.first()
+        intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
         pickContact.launch(intent)
     }
 
-    private fun parseContactResult(data: Intent) {
-        val uri = data.data
-        if (uri == null) {
-            Toast.makeText(this, R.string.contact_pick_failed, Toast.LENGTH_SHORT).show()
-            return
+    private fun hasContactResult(data: Intent): Boolean {
+        if (data.data != null) {
+            return true
         }
+        if (data.clipData != null && data.clipData!!.itemCount > 0) {
+            return true
+        }
+        return ContactPickerHelper.hasContactData(data)
+    }
 
-        val contact = ContactPickerHelper.parsePickedContact(this, uri)
+    private fun parseContactResult(data: Intent) {
+        val contact = ContactPickerHelper.parseContactFromIntent(this, data)
         if (contact == null) {
             Toast.makeText(this, R.string.contact_pick_failed, Toast.LENGTH_SHORT).show()
             return
