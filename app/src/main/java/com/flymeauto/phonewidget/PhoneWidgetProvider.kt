@@ -43,31 +43,35 @@ class PhoneWidgetProvider : AppWidgetProvider() {
             widgetId: Int
         ) {
             val config = WidgetPreferences.load(context, widgetId)
+            val transparency = config?.transparencyPercent ?: WidgetAppearance.DEFAULT_TRANSPARENCY_PERCENT
             val views = RemoteViews(context.packageName, R.layout.widget_layout)
+            val backgroundAlpha = (WidgetAppearance.opacity(transparency) * 255).toInt()
+
+            views.setInt(R.id.widget_background, "setImageAlpha", backgroundAlpha)
 
             if (config == null) {
-                views.setViewVisibility(R.id.widget_button, View.GONE)
+                views.setViewVisibility(R.id.widget_icon, View.GONE)
                 views.setViewVisibility(R.id.widget_placeholder, View.VISIBLE)
             } else {
-                views.setViewVisibility(R.id.widget_button, View.VISIBLE)
+                views.setViewVisibility(R.id.widget_icon, View.VISIBLE)
                 views.setViewVisibility(R.id.widget_placeholder, View.GONE)
-                views.setContentDescription(R.id.widget_button, config.displayName)
+                views.setContentDescription(R.id.widget_icon, config.displayName)
 
                 when (config.iconType) {
                     IconType.CUSTOM -> {
                         val iconUri = WidgetIconStorage.iconUri(context, widgetId)
                         if (iconUri != null) {
-                            views.setImageViewUri(R.id.widget_button, iconUri)
+                            views.setImageViewUri(R.id.widget_icon, iconUri)
                         } else {
                             views.setImageViewResource(
-                                R.id.widget_button,
+                                R.id.widget_icon,
                                 WidgetIconMapper.drawableRes(IconType.PHONE)
                             )
                         }
                     }
                     else -> {
                         views.setImageViewResource(
-                            R.id.widget_button,
+                            R.id.widget_icon,
                             WidgetIconMapper.drawableRes(config.iconType)
                         )
                     }
@@ -84,7 +88,7 @@ class PhoneWidgetProvider : AppWidgetProvider() {
                 callIntent,
                 PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
             )
-            views.setOnClickPendingIntent(R.id.widget_button, pendingIntent)
+            views.setOnClickPendingIntent(R.id.widget_root, pendingIntent)
 
             appWidgetManager.updateAppWidget(widgetId, views)
         }

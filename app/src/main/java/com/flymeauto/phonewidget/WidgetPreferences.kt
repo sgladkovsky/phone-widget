@@ -9,13 +9,14 @@ data class WidgetConfig(
     val phoneNumber: String,
     val iconType: IconType,
     val customIconUri: String?,
-    val confirmCall: Boolean = false
+    val confirmCall: Boolean = false,
+    val transparencyPercent: Int = WidgetAppearance.DEFAULT_TRANSPARENCY_PERCENT
 ) {
     val displayName: String
         get() = contactName.ifBlank { phoneNumber }
 
     companion object {
-        fun empty() = WidgetConfig("", "", IconType.PHONE, null, false)
+        fun empty() = WidgetConfig("", "", IconType.PHONE, null, false, WidgetAppearance.DEFAULT_TRANSPARENCY_PERCENT)
     }
 }
 
@@ -48,6 +49,7 @@ object WidgetPreferences {
             .putString(key(widgetId, "icon_type"), config.iconType.prefValue)
             .putString(key(widgetId, "icon_uri"), config.customIconUri)
             .putBoolean(key(widgetId, "confirm_call"), config.confirmCall)
+            .putInt(key(widgetId, "transparency"), config.transparencyPercent)
             .apply()
     }
 
@@ -62,7 +64,11 @@ object WidgetPreferences {
             phoneNumber = phone,
             iconType = IconType.fromPref(preferences.getString(key(widgetId, "icon_type"), null)),
             customIconUri = preferences.getString(key(widgetId, "icon_uri"), null),
-            confirmCall = preferences.getBoolean(key(widgetId, "confirm_call"), false)
+            confirmCall = preferences.getBoolean(key(widgetId, "confirm_call"), false),
+            transparencyPercent = preferences.getInt(
+                key(widgetId, "transparency"),
+                WidgetAppearance.DEFAULT_TRANSPARENCY_PERCENT
+            )
         )
     }
 
@@ -73,6 +79,7 @@ object WidgetPreferences {
             .remove(key(widgetId, "icon_type"))
             .remove(key(widgetId, "icon_uri"))
             .remove(key(widgetId, "confirm_call"))
+            .remove(key(widgetId, "transparency"))
             .apply()
         WidgetIconStorage.deleteIcon(context, widgetId)
     }
@@ -104,15 +111,55 @@ object WidgetIconStorage {
                 directory.mkdirs()
             }
             val target = iconFile(context, widgetId)
-            context.contentResolver.openInputStream(sourceUri)?.use { input ->
-                target.outputStream().use { output ->
-                    input.copyTo(output)
-                }
+            val sourceBitmap = context.contentResolver.openInputStream(sourceUri)?.use { input ->
+                android.graphics.BitmapFactory.decodeStream(input)
+            } ?: return null
+            val iconSizePx = (WidgetAppearance.ICON_SIZE_DP * context.resources.displayMetrics.density).toInt()
+            val scaled = android.graphics.Bitmap.createScaledBitmap(
+                sourceBitmap,
+                iconSizePx,
+                iconSizePx,
+                true
+            )
+            val bordered = applyIconBorder(scaled)
+            target.outputStream().use { output ->
+                bordered.compress(android.graphics.Bitmap.CompressFormat.PNG, 100, output)
             }
+            if (scaled !== sourceBitmap) {
+                scaled.recycle()
+            }
+            if (bordered !== scaled) {
+                bordered.recycle()
+            }
+            sourceBitmap.recycle()
             fileProviderUri(context, target)?.toString()
         } catch (_: Exception) {
             null
         }
+    }
+
+    private fun applyIconBorder(bitmap: android.graphics.Bitmap): android.graphics.Bitmap {
+        val output = bitmap.copy(android.graphics.Bitmap.Config.ARGB_8888, true)
+        val canvas = android.graphics.Canvas(output)
+        val strokeWidth = (bitmap.width * 0.08f).coerceAtLeast(2f)
+        val paint = android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG).apply {
+            color = android.graphics.Color.BLACK
+            style = android.graphics.Paint.Style.STROKE
+            this.strokeWidth = strokeWidth
+        }
+        val inset = strokeWidth / 2f
+        canvas.drawRoundRect(
+            android.graphics.RectF(
+                inset,
+                inset,
+                bitmap.width - inset,
+                bitmap.height - inset
+            ),
+            bitmap.width * 0.18f,
+            bitmap.height * 0.18f,
+            paint
+        )
+        return output
     }
 
     fun deleteIcon(context: Context, widgetId: Int) {

@@ -83,20 +83,55 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="24dp"
+            android:text="@string/transparency_title"
+            android:textAppearance="?attr/textAppearanceTitleMedium" />
+
+        <TextView
+            android:id="@+id/transparency_value"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:textAppearance="?attr/textAppearanceBodyMedium" />
+
+        <com.google.android.material.slider.Slider
+            android:id="@+id/transparency_slider"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:stepSize="5"
+            android:value="30"
+            android:valueFrom="0"
+            android:valueTo="100" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
             android:text="@string/pick_icon"
             android:textAppearance="?attr/textAppearanceTitleMedium" />
 
-        <ImageView
-            android:id="@+id/icon_preview"
+        <FrameLayout
             android:layout_width="96dp"
             android:layout_height="96dp"
             android:layout_gravity="center_horizontal"
-            android:layout_marginTop="12dp"
-            android:background="@drawable/widget_button_background"
-            android:contentDescription="@string/icon_preview"
-            android:padding="16dp"
-            android:scaleType="centerInside"
-            android:src="@drawable/ic_widget_phone" />
+            android:layout_marginTop="12dp">
+
+            <View
+                android:id="@+id/icon_preview_background"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="@drawable/widget_button_background" />
+
+            <ImageView
+                android:id="@+id/icon_preview"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:layout_gravity="center"
+                android:contentDescription="@string/icon_preview"
+                android:scaleType="fitCenter"
+                android:src="@drawable/ic_widget_phone" />
+
+        </FrameLayout>
 
         <Spinner
             android:id="@+id/icon_spinner"

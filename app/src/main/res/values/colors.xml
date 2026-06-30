@@ -3,6 +3,7 @@
     <color name="widget_background">#1E2A3A</color>
     <color name="widget_background_pressed">#2C3E55</color>
     <color name="widget_icon">#FFFFFF</color>
+    <color name="widget_icon_stroke">#000000</color>
     <color name="widget_text">#B0BEC5</color>
     <color name="primary">#2196F3</color>
     <color name="primary_dark">#1565C0</color>

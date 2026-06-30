@@ -76,6 +76,7 @@ class WidgetConfigActivity : AppCompatActivity() {
 
         setResult(RESULT_CANCELED)
         setupIconSpinner()
+        setupTransparencySlider()
         loadExistingConfig()
         setupListeners()
         updateContactPickerVisibility()
@@ -138,6 +139,8 @@ class WidgetConfigActivity : AppCompatActivity() {
         binding.phoneInput.setText(config.phoneNumber)
         binding.contactNameInput.setText(config.contactName)
         binding.confirmCallSwitch.isChecked = config.confirmCall
+        binding.transparencySlider.value = config.transparencyPercent.toFloat()
+        updateTransparencyPreview(config.transparencyPercent)
         binding.iconSpinner.setSelection(iconSpinnerIndex(config.iconType))
 
         if (config.iconType == IconType.CUSTOM) {
@@ -148,6 +151,24 @@ class WidgetConfigActivity : AppCompatActivity() {
         } else {
             binding.iconPreview.setImageResource(WidgetIconMapper.drawableRes(config.iconType))
         }
+    }
+
+    private fun setupTransparencySlider() {
+        binding.transparencySlider.value = WidgetAppearance.DEFAULT_TRANSPARENCY_PERCENT.toFloat()
+        updateTransparencyPreview(WidgetAppearance.DEFAULT_TRANSPARENCY_PERCENT)
+        binding.transparencySlider.addOnChangeListener { _, value, _ ->
+            updateTransparencyPreview(value.toInt())
+        }
+    }
+
+    private fun updateTransparencyPreview(transparencyPercent: Int) {
+        binding.transparencyValue.text = getString(
+            R.string.transparency_value,
+            transparencyPercent
+        )
+        binding.iconPreviewBackground.setBackgroundColor(
+            WidgetAppearance.backgroundColor(transparencyPercent)
+        )
     }
 
     private fun setupListeners() {
@@ -232,7 +253,8 @@ class WidgetConfigActivity : AppCompatActivity() {
             phoneNumber = phoneNumber,
             iconType = selectedIconType,
             customIconUri = customIconUriString,
-            confirmCall = binding.confirmCallSwitch.isChecked
+            confirmCall = binding.confirmCallSwitch.isChecked,
+            transparencyPercent = binding.transparencySlider.value.toInt()
         )
         WidgetPreferences.save(this, appWidgetId, config)
 
