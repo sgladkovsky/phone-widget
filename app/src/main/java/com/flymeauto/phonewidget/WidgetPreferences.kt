@@ -8,13 +8,14 @@ data class WidgetConfig(
     val contactName: String,
     val phoneNumber: String,
     val iconType: IconType,
-    val customIconUri: String?
+    val customIconUri: String?,
+    val confirmCall: Boolean = false
 ) {
     val displayName: String
         get() = contactName.ifBlank { phoneNumber }
 
     companion object {
-        fun empty() = WidgetConfig("", "", IconType.PHONE, null)
+        fun empty() = WidgetConfig("", "", IconType.PHONE, null, false)
     }
 }
 
@@ -46,6 +47,7 @@ object WidgetPreferences {
             .putString(key(widgetId, "phone"), config.phoneNumber)
             .putString(key(widgetId, "icon_type"), config.iconType.prefValue)
             .putString(key(widgetId, "icon_uri"), config.customIconUri)
+            .putBoolean(key(widgetId, "confirm_call"), config.confirmCall)
             .apply()
     }
 
@@ -59,7 +61,8 @@ object WidgetPreferences {
             contactName = preferences.getString(key(widgetId, "name"), "") ?: "",
             phoneNumber = phone,
             iconType = IconType.fromPref(preferences.getString(key(widgetId, "icon_type"), null)),
-            customIconUri = preferences.getString(key(widgetId, "icon_uri"), null)
+            customIconUri = preferences.getString(key(widgetId, "icon_uri"), null),
+            confirmCall = preferences.getBoolean(key(widgetId, "confirm_call"), false)
         )
     }
 
@@ -69,6 +72,7 @@ object WidgetPreferences {
             .remove(key(widgetId, "phone"))
             .remove(key(widgetId, "icon_type"))
             .remove(key(widgetId, "icon_uri"))
+            .remove(key(widgetId, "confirm_call"))
             .apply()
         WidgetIconStorage.deleteIcon(context, widgetId)
     }

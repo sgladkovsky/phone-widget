@@ -145,6 +145,7 @@ class WidgetConfigActivity : AppCompatActivity() {
         binding.contactPhoneText.text = config.phoneNumber
         binding.contactPhoneText.visibility =
             if (config.phoneNumber.isBlank()) View.GONE else View.VISIBLE
+        binding.confirmCallSwitch.isChecked = config.confirmCall
         binding.iconSpinner.setSelection(iconSpinnerIndex(config.iconType))
 
         if (config.iconType == IconType.CUSTOM) {
@@ -219,6 +220,7 @@ class WidgetConfigActivity : AppCompatActivity() {
 
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.CALL_PHONE)
             != PackageManager.PERMISSION_GRANTED
+            && !binding.confirmCallSwitch.isChecked
         ) {
             requestCallPermission.launch(Manifest.permission.CALL_PHONE)
         }
@@ -236,7 +238,8 @@ class WidgetConfigActivity : AppCompatActivity() {
             contactName = selectedName,
             phoneNumber = selectedPhone,
             iconType = selectedIconType,
-            customIconUri = customIconUriString
+            customIconUri = customIconUriString,
+            confirmCall = binding.confirmCallSwitch.isChecked
         )
         WidgetPreferences.save(this, appWidgetId, config)
 

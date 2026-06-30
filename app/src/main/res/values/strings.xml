@@ -14,6 +14,8 @@
     <string name="icon_preview">Предпросмотр иконки</string>
     <string name="pick_custom_icon">Выбрать изображение из галереи</string>
     <string name="save">Сохранить</string>
+    <string name="confirm_call">Подтвердить звонок</string>
+    <string name="confirm_call_hint">Если включено, откроется приложение «Телефон» с набранным номером — останется нажать «Звонок».</string>
 
     <string name="icon_phone">Телефон</string>
     <string name="icon_person">Контакт</string>

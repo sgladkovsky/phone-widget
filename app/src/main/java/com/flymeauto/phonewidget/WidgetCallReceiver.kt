@@ -32,6 +32,14 @@ class WidgetCallReceiver : BroadcastReceiver() {
         }
 
         val phoneUri = Uri.parse("tel:${config.phoneNumber}")
+        if (config.confirmCall) {
+            val dialIntent = Intent(Intent.ACTION_DIAL, phoneUri).apply {
+                flags = Intent.FLAG_ACTIVITY_NEW_TASK
+            }
+            context.startActivity(dialIntent)
+            return
+        }
+
         if (ContextCompat.checkSelfPermission(context, Manifest.permission.CALL_PHONE)
             == PackageManager.PERMISSION_GRANTED
         ) {

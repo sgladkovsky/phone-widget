@@ -46,6 +46,20 @@
             android:textAppearance="?attr/textAppearanceBodyLarge"
             android:visibility="gone" />
 
+        <com.google.android.material.materialswitch.MaterialSwitch
+            android:id="@+id/confirm_call_switch"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            android:text="@string/confirm_call" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:text="@string/confirm_call_hint"
+            android:textAppearance="?attr/textAppearanceBodySmall" />
+
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
