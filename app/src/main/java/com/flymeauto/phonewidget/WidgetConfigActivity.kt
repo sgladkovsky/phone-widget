@@ -8,6 +8,7 @@ import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Bundle
 import android.provider.ContactsContract
+import android.util.Log
 import android.view.View
 import android.widget.AdapterView
 import android.widget.ArrayAdapter
@@ -20,6 +21,10 @@ import androidx.core.widget.doAfterTextChanged
 import com.flymeauto.phonewidget.databinding.ActivityWidgetConfigBinding
 
 class WidgetConfigActivity : AppCompatActivity() {
+
+    companion object {
+        private const val TAG = "WidgetConfigActivity"
+    }
 
     private lateinit var binding: ActivityWidgetConfigBinding
     private var appWidgetId = AppWidgetManager.INVALID_APPWIDGET_ID
@@ -173,15 +178,35 @@ class WidgetConfigActivity : AppCompatActivity() {
     }
 
     private fun setupListeners() {
-        binding.pickContactButton.setOnClickListener { openContactPicker() }
-        binding.phoneInput.doAfterTextChanged {
+        Log.d(TAG, "setupListeners: start")
+
+        binding.phoneInputLayout.editText?.doAfterTextChanged {
             binding.phoneInputLayout.error = null
-        }
+        } ?: Log.w(TAG, "setupListeners: phone input is null")
+
         binding.pickCustomIconButton.setOnClickListener {
+            Log.d(TAG, "pickCustomIconButton clicked")
             pickCustomIcon.launch(arrayOf("image/*"))
         }
-        binding.saveButton.setOnClickListener { saveWidget() }
-        binding.cancelButton.setOnClickListener { finish() }
+
+        binding.saveButton.setOnClickListener {
+            Log.d(TAG, "saveButton clicked")
+            saveWidget()
+        }
+
+        binding.cancelButton.setOnClickListener {
+            Log.d(TAG, "cancelButton clicked")
+            finish()
+        }
+
+        binding.pickContactButton.setOnClickListener(::onPickContactClicked)
+
+        Log.d(TAG, "setupListeners: done")
+    }
+
+    private fun onPickContactClicked(view: View) {
+        Log.d(TAG, "onPickContactClicked")
+        openContactPicker()
     }
 
     private fun updateContactPickerVisibility() {
@@ -194,7 +219,20 @@ class WidgetConfigActivity : AppCompatActivity() {
     }
 
     private fun openContactPicker() {
-        val intents = listOf(
+        Log.d(TAG, "openContactPicker: start")
+        try {
+            val intent = createContactPickerIntent()
+            Log.d(TAG, "openContactPicker: intent=$intent")
+            pickContact.launch(intent)
+            Log.d(TAG, "openContactPicker: launched")
+        } catch (e: Exception) {
+            Log.e(TAG, "openContactPicker: failed", e)
+            Toast.makeText(this, R.string.contact_picker_unavailable, Toast.LENGTH_LONG).show()
+        }
+    }
+
+    private fun createContactPickerIntent(): Intent {
+        val candidates = listOf(
             Intent(Intent.ACTION_PICK, ContactsContract.CommonDataKinds.Phone.CONTENT_URI),
             Intent(Intent.ACTION_PICK, ContactsContract.Contacts.CONTENT_URI),
             Intent(Intent.ACTION_PICK).apply {
@@ -204,10 +242,10 @@ class WidgetConfigActivity : AppCompatActivity() {
                 type = ContactsContract.Contacts.CONTENT_TYPE
             }
         )
-        val intent = intents.firstOrNull { it.resolveActivity(packageManager) != null }
-            ?: intents.first()
-        intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-        pickContact.launch(intent)
+        val resolved = candidates.firstOrNull { intent ->
+            intent.resolveActivity(packageManager) != null
+        } ?: candidates[1]
+        return resolved.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
     }
 
     private fun hasContactResult(data: Intent): Boolean {
