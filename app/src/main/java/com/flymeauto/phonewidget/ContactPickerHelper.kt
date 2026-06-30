@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.provider.ContactsContract
+import android.util.Log
 
 data class PickedContact(
     val name: String,
@@ -11,6 +12,44 @@ data class PickedContact(
 )
 
 object ContactPickerHelper {
+
+    private const val TAG = "ContactPicker"
+
+    fun logPickerResult(resultCode: Int, intent: Intent) {
+        Log.d(TAG, "========== Выбор контакта ==========")
+        Log.d(TAG, "resultCode: $resultCode")
+        Log.d(TAG, "action: ${intent.action}")
+        Log.d(TAG, "data URI: ${intent.data}")
+        intent.extras?.let { bundle ->
+            if (bundle.isEmpty) {
+                Log.d(TAG, "extras: (пусто)")
+            } else {
+                for (key in bundle.keySet()) {
+                    Log.d(TAG, "extra[$key] = ${bundle.get(key)}")
+                }
+            }
+        } ?: Log.d(TAG, "extras: null")
+        intent.clipData?.let { clip ->
+            for (index in 0 until clip.itemCount) {
+                val item = clip.getItemAt(index)
+                Log.d(TAG, "clipData[$index] uri=${item.uri} text=${item.text}")
+            }
+        } ?: Log.d(TAG, "clipData: null")
+        collectUris(intent).forEachIndexed { index, uri ->
+            Log.d(TAG, "collectedUri[$index]: $uri")
+        }
+    }
+
+    fun logPickedContact(contact: PickedContact?) {
+        if (contact == null) {
+            Log.w(TAG, "Распознанный контакт: не удалось получить")
+        } else {
+            Log.d(TAG, "Распознанный контакт:")
+            Log.d(TAG, "  name: ${contact.name}")
+            Log.d(TAG, "  phoneNumber: ${contact.phoneNumber}")
+        }
+        Log.d(TAG, "====================================")
+    }
 
     fun hasContactData(intent: Intent): Boolean {
         if (intent.data != null) {
@@ -23,10 +62,16 @@ object ContactPickerHelper {
     }
 
     fun parseContactFromIntent(context: Context, intent: Intent): PickedContact? {
-        parseFromExtras(intent)?.let { return it }
+        parseFromExtras(intent)?.let {
+            Log.d(TAG, "Источник данных: extras")
+            return it
+        }
 
         for (uri in collectUris(intent)) {
-            parsePickedContact(context, uri)?.let { return it }
+            parsePickedContact(context, uri)?.let {
+                Log.d(TAG, "Источник данных: URI $uri")
+                return it
+            }
         }
         return null
     }

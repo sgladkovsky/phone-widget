@@ -41,6 +41,7 @@ class WidgetConfigActivity : AppCompatActivity() {
         if (result.resultCode != Activity.RESULT_OK && !hasContactResult(data)) {
             return@registerForActivityResult
         }
+        ContactPickerHelper.logPickerResult(result.resultCode, data)
         parseContactResult(data)
     }
 
@@ -221,6 +222,7 @@ class WidgetConfigActivity : AppCompatActivity() {
 
     private fun parseContactResult(data: Intent) {
         val contact = ContactPickerHelper.parseContactFromIntent(this, data)
+        ContactPickerHelper.logPickedContact(contact)
         if (contact == null) {
             Toast.makeText(this, R.string.contact_pick_failed, Toast.LENGTH_SHORT).show()
             return
