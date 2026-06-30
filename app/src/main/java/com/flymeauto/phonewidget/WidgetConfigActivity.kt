@@ -177,40 +177,37 @@ class WidgetConfigActivity : AppCompatActivity() {
     }
 
     private fun openContactPicker() {
-        val intent = Intent(Intent.ACTION_PICK).apply {
-            type = ContactsContract.CommonDataKinds.Phone.CONTENT_TYPE
+        val intent = Intent(
+            Intent.ACTION_PICK,
+            ContactsContract.CommonDataKinds.Phone.CONTENT_URI
+        )
+        if (intent.resolveActivity(packageManager) == null) {
+            val fallback = Intent(Intent.ACTION_PICK).apply {
+                type = ContactsContract.Contacts.CONTENT_TYPE
+            }
+            pickContact.launch(fallback)
+            return
         }
         pickContact.launch(intent)
     }
 
     private fun parseContactResult(data: Intent) {
-        val uri = data.data ?: return
-        contentResolver.query(
-            uri,
-            arrayOf(
-                ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME,
-                ContactsContract.CommonDataKinds.Phone.NUMBER
-            ),
-            null,
-            null,
-            null
-        )?.use { cursor ->
-            if (!cursor.moveToFirst()) {
-                return
-            }
-            val nameIndex = cursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME)
-            val numberIndex = cursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER)
-            selectedName = if (nameIndex >= 0) cursor.getString(nameIndex).orEmpty() else ""
-            selectedPhone = if (numberIndex >= 0) cursor.getString(numberIndex).orEmpty() else ""
-        }
-
-        if (selectedPhone.isBlank()) {
+        val uri = data.data
+        if (uri == null) {
             Toast.makeText(this, R.string.contact_pick_failed, Toast.LENGTH_SHORT).show()
             return
         }
 
-        binding.contactNameText.text = selectedName.ifBlank { selectedPhone }
-        binding.contactPhoneText.text = selectedPhone
+        val contact = ContactPickerHelper.parsePickedContact(this, uri)
+        if (contact == null) {
+            Toast.makeText(this, R.string.contact_pick_failed, Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        selectedName = contact.name
+        selectedPhone = contact.phoneNumber
+        binding.contactNameText.text = contact.name.ifBlank { contact.phoneNumber }
+        binding.contactPhoneText.text = contact.phoneNumber
         binding.contactPhoneText.visibility = View.VISIBLE
     }
 
