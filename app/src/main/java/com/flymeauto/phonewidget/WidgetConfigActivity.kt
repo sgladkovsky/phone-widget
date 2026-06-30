@@ -15,14 +15,14 @@ import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
+import androidx.core.view.isVisible
+import androidx.core.widget.doAfterTextChanged
 import com.flymeauto.phonewidget.databinding.ActivityWidgetConfigBinding
 
 class WidgetConfigActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityWidgetConfigBinding
     private var appWidgetId = AppWidgetManager.INVALID_APPWIDGET_ID
-    private var selectedPhone: String = ""
-    private var selectedName: String = ""
     private var selectedIconType: IconType = IconType.PHONE
     private var selectedCustomIconUri: Uri? = null
 
@@ -31,16 +31,6 @@ class WidgetConfigActivity : AppCompatActivity() {
     ) { granted ->
         if (!granted) {
             Toast.makeText(this, R.string.call_permission_required, Toast.LENGTH_LONG).show()
-        }
-    }
-
-    private val requestContactsPermission = registerForActivityResult(
-        ActivityResultContracts.RequestPermission()
-    ) { granted ->
-        if (granted) {
-            openContactPicker()
-        } else {
-            Toast.makeText(this, R.string.contacts_permission_required, Toast.LENGTH_LONG).show()
         }
     }
 
@@ -88,6 +78,12 @@ class WidgetConfigActivity : AppCompatActivity() {
         setupIconSpinner()
         loadExistingConfig()
         setupListeners()
+        updateContactPickerVisibility()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        updateContactPickerVisibility()
     }
 
     private fun setupIconSpinner() {
@@ -136,15 +132,11 @@ class WidgetConfigActivity : AppCompatActivity() {
 
     private fun loadExistingConfig() {
         val config = WidgetPreferences.load(this, appWidgetId) ?: return
-        selectedName = config.contactName
-        selectedPhone = config.phoneNumber
         selectedIconType = config.iconType
         selectedCustomIconUri = config.customIconUri?.let(Uri::parse)
 
-        binding.contactNameText.text = config.displayName
-        binding.contactPhoneText.text = config.phoneNumber
-        binding.contactPhoneText.visibility =
-            if (config.phoneNumber.isBlank()) View.GONE else View.VISIBLE
+        binding.phoneInput.setText(config.phoneNumber)
+        binding.contactNameInput.setText(config.contactName)
         binding.confirmCallSwitch.isChecked = config.confirmCall
         binding.iconSpinner.setSelection(iconSpinnerIndex(config.iconType))
 
@@ -159,7 +151,10 @@ class WidgetConfigActivity : AppCompatActivity() {
     }
 
     private fun setupListeners() {
-        binding.pickContactButton.setOnClickListener { ensureContactsPermissionAndPick() }
+        binding.pickContactButton.setOnClickListener { openContactPicker() }
+        binding.phoneInput.doAfterTextChanged {
+            binding.phoneInputLayout.error = null
+        }
         binding.pickCustomIconButton.setOnClickListener {
             pickCustomIcon.launch(arrayOf("image/*"))
         }
@@ -167,14 +162,13 @@ class WidgetConfigActivity : AppCompatActivity() {
         binding.cancelButton.setOnClickListener { finish() }
     }
 
-    private fun ensureContactsPermissionAndPick() {
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_CONTACTS)
-            == PackageManager.PERMISSION_GRANTED
-        ) {
-            openContactPicker()
-        } else {
-            requestContactsPermission.launch(Manifest.permission.READ_CONTACTS)
-        }
+    private fun updateContactPickerVisibility() {
+        binding.pickContactButton.isVisible = hasContactsPermission()
+    }
+
+    private fun hasContactsPermission(): Boolean {
+        return ContextCompat.checkSelfPermission(this, Manifest.permission.READ_CONTACTS) ==
+            PackageManager.PERMISSION_GRANTED
     }
 
     private fun openContactPicker() {
@@ -205,16 +199,15 @@ class WidgetConfigActivity : AppCompatActivity() {
             return
         }
 
-        selectedName = contact.name
-        selectedPhone = contact.phoneNumber
-        binding.contactNameText.text = contact.name.ifBlank { contact.phoneNumber }
-        binding.contactPhoneText.text = contact.phoneNumber
-        binding.contactPhoneText.visibility = View.VISIBLE
+        binding.phoneInput.setText(contact.phoneNumber)
+        binding.contactNameInput.setText(contact.name)
+        binding.phoneInputLayout.error = null
     }
 
     private fun saveWidget() {
-        if (selectedPhone.isBlank()) {
-            Toast.makeText(this, R.string.select_contact_first, Toast.LENGTH_SHORT).show()
+        val phoneNumber = binding.phoneInput.text?.toString()?.trim().orEmpty()
+        if (phoneNumber.isBlank()) {
+            binding.phoneInputLayout.error = getString(R.string.enter_phone_first)
             return
         }
 
@@ -235,8 +228,8 @@ class WidgetConfigActivity : AppCompatActivity() {
         }
 
         val config = WidgetConfig(
-            contactName = selectedName,
-            phoneNumber = selectedPhone,
+            contactName = binding.contactNameInput.text?.toString()?.trim().orEmpty(),
+            phoneNumber = phoneNumber,
             iconType = selectedIconType,
             customIconUri = customIconUriString,
             confirmCall = binding.confirmCallSwitch.isChecked

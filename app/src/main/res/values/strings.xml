@@ -7,9 +7,10 @@
     <string name="widget_not_configured">Не настроено</string>
 
     <string name="config_title">Настройка виджета</string>
-    <string name="config_subtitle">Выберите контакт и иконку для кнопки на рабочем столе Flyme Auto.</string>
-    <string name="pick_contact">Выбрать контакт</string>
-    <string name="no_contact_selected">Контакт не выбран</string>
+    <string name="config_subtitle">Укажите номер телефона и иконку для кнопки на рабочем столе Flyme Auto.</string>
+    <string name="phone_number_hint">Номер телефона</string>
+    <string name="contact_name_hint">Подпись кнопки (необязательно)</string>
+    <string name="pick_contact">Выбрать из контактов</string>
     <string name="pick_icon">Иконка кнопки</string>
     <string name="icon_preview">Предпросмотр иконки</string>
     <string name="pick_custom_icon">Выбрать изображение из галереи</string>
@@ -30,9 +31,8 @@
     <string name="configured_widgets">Настроенные виджеты</string>
     <string name="no_widgets_yet">Виджеты ещё не добавлены. Удерживайте рабочий стол и выберите «Виджеты».</string>
 
-    <string name="select_contact_first">Сначала выберите контакт</string>
+    <string name="enter_phone_first">Укажите номер телефона</string>
     <string name="contact_pick_failed">Не удалось получить номер контакта</string>
     <string name="call_permission_required">Разрешите звонки в настройках приложения</string>
-    <string name="contacts_permission_required">Разрешите доступ к контактам для выбора номера</string>
-    <string name="permissions_required">Для работы виджета нужны разрешения на звонки и контакты</string>
+    <string name="permissions_required">Для мгновенного звонка нужно разрешение на совершение вызовов</string>
 </resources>

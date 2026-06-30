@@ -46,19 +46,10 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun ensurePermissions() {
-        val missing = mutableListOf<String>()
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.CALL_PHONE)
             != PackageManager.PERMISSION_GRANTED
         ) {
-            missing.add(Manifest.permission.CALL_PHONE)
-        }
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_CONTACTS)
-            != PackageManager.PERMISSION_GRANTED
-        ) {
-            missing.add(Manifest.permission.READ_CONTACTS)
-        }
-        if (missing.isNotEmpty()) {
-            requestPermissions.launch(missing.toTypedArray())
+            requestPermissions.launch(arrayOf(Manifest.permission.CALL_PHONE))
         }
     }
 
