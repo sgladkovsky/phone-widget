@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Быстрый звонок</string>
+    <string name="widget_name">Кнопка звонка</string>
+    <string name="widget_description">Кнопка для быстрого вызова выбранного контакта</string>
+    <string name="widget_call_button">Позвонить</string>
+    <string name="widget_not_configured">Не настроено</string>
+
+    <string name="config_title">Настройка виджета</string>
+    <string name="config_subtitle">Укажите номер телефона и иконку для кнопки на рабочем столе Flyme Auto.</string>
+    <string name="phone_number_hint">Номер телефона</string>
+    <string name="contact_name_hint">Подпись кнопки (необязательно)</string>
+    <string name="pick_contact">Выбрать из контактов</string>
+    <string name="pick_icon">Иконка кнопки</string>
+    <string name="icon_preview">Предпросмотр иконки</string>
+    <string name="pick_custom_icon">Выбрать изображение из галереи</string>
+    <string name="save">Сохранить</string>
+    <string name="confirm_call">Подтвердить звонок</string>
+    <string name="confirm_call_hint">Если включено, откроется приложение «Телефон» с набранным номером — останется нажать «Звонок».</string>
+    <string name="transparency_title">Прозрачность кнопки</string>
+    <string name="transparency_value">Прозрачность: %1$d%%</string>
+
+    <string name="icon_phone">Телефон</string>
+    <string name="icon_person">Контакт</string>
+    <string name="icon_home">Дом</string>
+    <string name="icon_car">Авто</string>
+    <string name="icon_work">Работа</string>
+    <string name="icon_star">Избранное</string>
+    <string name="icon_heart">Сердце</string>
+    <string name="icon_custom">Своё изображение</string>
+
+    <string name="main_instructions">Добавьте виджет «Кнопка звонка» на рабочий стол. Можно разместить любое количество кнопок — каждая настраивается отдельно.</string>
+    <string name="configured_widgets">Настроенные виджеты</string>
+    <string name="no_widgets_yet">Виджеты ещё не добавлены. Удерживайте рабочий стол и выберите «Виджеты».</string>
+
+    <string name="enter_phone_first">Укажите номер телефона</string>
+    <string name="contact_pick_failed">Не удалось получить номер контакта</string>
+    <string name="contact_picker_unavailable">Не удалось открыть выбор контактов</string>
+    <string name="contacts_empty">В телефонной книге нет контактов с номерами</string>
+    <string name="contact_search_hint">Поиск по имени или номеру</string>
+    <string name="contacts_not_found">Ничего не найдено</string>
+    <string name="contacts_permission_title">Нужен доступ к контактам</string>
+    <string name="contacts_permission_message">Для выбора контакта откройте настройки приложения и разрешите доступ к телефонной книге.</string>
+    <string name="open_settings">Открыть настройки</string>
+    <string name="call_permission_required">Разрешите звонки в настройках приложения</string>
+    <string name="permissions_required">Для мгновенного звонка нужно разрешение на совершение вызовов</string>
+</resources>
