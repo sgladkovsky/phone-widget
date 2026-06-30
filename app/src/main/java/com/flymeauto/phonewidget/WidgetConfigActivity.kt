@@ -6,6 +6,7 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Bundle
+import android.provider.Settings
 import android.util.Log
 import android.view.View
 import android.widget.AdapterView
@@ -14,9 +15,9 @@ import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
-import androidx.core.view.isVisible
 import androidx.core.widget.doAfterTextChanged
 import com.flymeauto.phonewidget.databinding.ActivityWidgetConfigBinding
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 
 class WidgetConfigActivity : AppCompatActivity() {
 
@@ -34,6 +35,16 @@ class WidgetConfigActivity : AppCompatActivity() {
     ) { granted ->
         if (!granted) {
             Toast.makeText(this, R.string.call_permission_required, Toast.LENGTH_LONG).show()
+        }
+    }
+
+    private val requestContactsPermission = registerForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { granted ->
+        if (granted) {
+            openContactPicker()
+        } else {
+            showContactsPermissionSettingsDialog()
         }
     }
 
@@ -72,12 +83,6 @@ class WidgetConfigActivity : AppCompatActivity() {
         setupTransparencySlider()
         loadExistingConfig()
         setupListeners()
-        updateContactPickerVisibility()
-    }
-
-    override fun onResume() {
-        super.onResume()
-        updateContactPickerVisibility()
     }
 
     private fun setupIconSpinner() {
@@ -184,11 +189,31 @@ class WidgetConfigActivity : AppCompatActivity() {
 
     private fun onPickContactClicked(@Suppress("UNUSED_PARAMETER") view: View) {
         Log.d(TAG, "onPickContactClicked")
-        openContactPicker()
+        if (hasContactsPermission()) {
+            openContactPicker()
+        } else if (shouldShowRequestPermissionRationale(Manifest.permission.READ_CONTACTS)) {
+            showContactsPermissionSettingsDialog()
+        } else {
+            requestContactsPermission.launch(Manifest.permission.READ_CONTACTS)
+        }
     }
 
-    private fun updateContactPickerVisibility() {
-        binding.pickContactButton.isVisible = hasContactsPermission()
+    private fun showContactsPermissionSettingsDialog() {
+        MaterialAlertDialogBuilder(this)
+            .setTitle(R.string.contacts_permission_title)
+            .setMessage(R.string.contacts_permission_message)
+            .setPositiveButton(R.string.open_settings) { _, _ ->
+                openAppSettings()
+            }
+            .setNegativeButton(android.R.string.cancel, null)
+            .show()
+    }
+
+    private fun openAppSettings() {
+        val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
+            data = Uri.fromParts("package", packageName, null)
+        }
+        startActivity(intent)
     }
 
     private fun hasContactsPermission(): Boolean {
