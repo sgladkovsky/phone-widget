@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="widget_background">#1E2A3A</color>
+    <color name="widget_background_pressed">#2C3E55</color>
+    <color name="widget_icon">#FFFFFF</color>
+    <color name="widget_text">#B0BEC5</color>
+    <color name="primary">#2196F3</color>
+    <color name="primary_dark">#1565C0</color>
+    <color name="launcher_background">#1565C0</color>
+</resources>
